@@ -53,6 +53,11 @@
 
   aWebSocket.onopen = () => {
     console.log('WebSocket open')
+    let buf = encoder({
+      type: 'join',
+      body: { uid: 0, roomid, protover: 1, platform: 'web', clientver: '1.6.3', type: 2 }
+    })
+    aWebSocket.send(buf)
   }
 
   aWebSocket.onmessage = e => {
