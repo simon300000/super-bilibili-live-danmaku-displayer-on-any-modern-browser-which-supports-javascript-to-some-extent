@@ -32,6 +32,48 @@
     return new Uint8Array([...new Uint8Array(head.buffer), ...buffer])
   }
 
+
+
+  const decoder = view => {
+    let packs = []
+    for (let i = 0; i < view.byteLength;) {
+      let size = view.getInt32(i)
+      packs.push(new DataView(view.buffer, i, size))
+      i += size
+    }
+    let realPack = []
+    for (let i = 0; i < packs.length; i++) {
+      let buf = packs[i]
+
+      let body = buf.buffer.slice(16)
+      let protocol = buf.getInt16(6)
+      let operation = buf.getInt32(8)
+
+      let type
+      if (operation === 3) {
+        type = 'heartbeat'
+      }
+      if (operation === 5) {
+        type = 'message'
+      }
+      if (operation === 8) {
+        type = 'welcome'
+      }
+
+      let data
+      if (protocol === 0) {
+        data = JSON.parse(new TextDecoder().decode(body))
+      }
+      if (protocol === 1 && body.byteLength) {
+        data = new DataView(body).getInt32(0)
+      }
+
+      realPack.push({ buf, type, protocol, data })
+    }
+
+    return realPack
+  }
+
   const roomid = Number(new URL(location.href).searchParams.get('roomid'))
   const css = atob(new URL(location.href).searchParams.get('css') || '')
   console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
