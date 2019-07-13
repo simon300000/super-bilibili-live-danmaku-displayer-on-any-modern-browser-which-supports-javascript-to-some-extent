@@ -2,42 +2,62 @@
 <html>
 
 <head>
-	<meta charset="utf-8">
-	<title>super bilibili live danmaku displayer on any modern browser which supports javascript to some extent</title>
-	<style media="screen" id="css">
+  <meta charset="utf-8">
+  <title>super bilibili live danmaku displayer on any modern browser which supports javascript to some extent</title>
+  <style media="screen" id="css">
 
-	</style>
+  </style>
 </head>
 
 <body></body>
 
 <script type="text/javascript" id="script">
-	const roomid = Number(new URL(location.href).searchParams.get('roomid'))
-	const css = atob(new URL(location.href).searchParams.get('css') || '')
-	console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
-	console.log(`roomid: ${roomid}`)
+  const encoder = ({ type, body = '' }) => {
+    if (typeof body !== 'string') {
+      body = JSON.stringify(body)
+    }
+    let head = new DataView(new ArrayBuffer(16))
+    let buffer = new TextEncoder().encode(body)
 
-	if (css) {
-		console.log(`css: ${css.length}`)
-		document.getElementById('css').innerHTML = css
-	}
+    head.setInt32(0, buffer.length + head.byteLength)
+    head.setInt16(4, 16)
+    head.setInt16(6, 1)
+    if (type === 'heartbeat') {
+      head.setInt32(8, 2)
+    }
+    if (type === 'join') {
+      head.setInt32(8, 7)
+    }
+    head.setInt32(12, 1)
+    return new Uint8Array([...new Uint8Array(head.buffer), ...buffer])
+  }
 
-	const aWebSocket = new WebSocket('wss://broadcastlv.chat.bilibili.com/sub')
-	aWebSocket.binaryType = 'arraybuffer'
+  const roomid = Number(new URL(location.href).searchParams.get('roomid'))
+  const css = atob(new URL(location.href).searchParams.get('css') || '')
+  console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
+  console.log(`roomid: ${roomid}`)
 
-	aWebSocket.onclose = () => {
-		console.log('WebSocket close')
-		console.log('restart')
-		eval(document.getElementById('script').innerHTML)
-	}
+  if (css) {
+    console.log(`css: ${css.length}`)
+    document.getElementById('css').innerHTML = css
+  }
 
-	aWebSocket.onopen = () => {
-		console.log('WebSocket open')
-	}
+  const aWebSocket = new WebSocket('wss://broadcastlv.chat.bilibili.com/sub')
+  aWebSocket.binaryType = 'arraybuffer'
 
-	aWebSocket.onmessage = e => {
-		console.debug('WebSocket message received:', e)
-	}
+  aWebSocket.onclose = () => {
+    console.log('WebSocket close')
+    console.log('restart')
+    eval(document.getElementById('script').innerHTML)
+  }
+
+  aWebSocket.onopen = () => {
+    console.log('WebSocket open')
+  }
+
+  aWebSocket.onmessage = e => {
+    console.debug('WebSocket message received:', e)
+  }
 
 </script>
 
