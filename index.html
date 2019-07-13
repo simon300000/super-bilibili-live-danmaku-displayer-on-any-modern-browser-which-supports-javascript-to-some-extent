@@ -4,14 +4,23 @@
 <head>
 	<meta charset="utf-8">
 	<title>super bilibili live danmaku displayer on any modern browser which supports javascript to some extent</title>
+	<style media="screen">
+
+	</style>
 </head>
 
 <body></body>
 
 <script type="text/javascript">
-	console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
 	const roomid = Number(new URL(location.href).searchParams.get('roomid'))
+	const css = atob(new URL(location.href).searchParams.get('css') || '')
+	console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
 	console.log(`roomid: ${roomid}`)
+
+	if (css) {
+		console.log(`css: ${css.length}`)
+		document.getElementsByTagName('style')[0].innerHTML = css
+	}
 
 	const aWebSocket = new WebSocket('wss://broadcastlv.chat.bilibili.com/sub')
 	aWebSocket.binaryType = 'arraybuffer'
