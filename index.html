@@ -38,14 +38,15 @@
     let packs = []
     for (let i = 0; i < view.byteLength;) {
       let size = view.getInt32(i)
-      packs.push(new DataView(view.buffer, i, size))
+      packs.push(new DataView(view.buffer.slice(i, i + size)))
       i += size
     }
     let realPack = []
     for (let i = 0; i < packs.length; i++) {
       let buf = packs[i]
+      let head = buf.getInt16(4)
 
-      let body = buf.buffer.slice(16)
+      let body = buf.buffer.slice(head)
       let protocol = buf.getInt16(6)
       let operation = buf.getInt32(8)
 
@@ -68,7 +69,7 @@
         data = new DataView(body).getInt32(0)
       }
 
-      realPack.push({ buf, type, protocol, data })
+      realPack.push({ type, data })
     }
 
     return realPack
