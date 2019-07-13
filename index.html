@@ -7,106 +7,122 @@
   <style media="screen" id="css">
 
   </style>
+
+  <script type="text/javascript" id="script">
+    const encoder = ({ type, body = '' }) => {
+      if (typeof body !== 'string') {
+        body = JSON.stringify(body)
+      }
+      let head = new DataView(new ArrayBuffer(16))
+      let buffer = new TextEncoder().encode(body)
+
+      head.setInt32(0, buffer.length + head.byteLength)
+      head.setInt16(4, 16)
+      head.setInt16(6, 1)
+      if (type === 'heartbeat') {
+        head.setInt32(8, 2)
+      }
+      if (type === 'join') {
+        head.setInt32(8, 7)
+      }
+      head.setInt32(12, 1)
+      return new Uint8Array([...new Uint8Array(head.buffer), ...buffer])
+    }
+
+
+
+    const decoder = view => {
+      let packs = []
+      for (let i = 0; i < view.byteLength;) {
+        let size = view.getInt32(i)
+        packs.push(new DataView(view.buffer.slice(i, i + size)))
+        i += size
+      }
+      let realPack = []
+      for (let i = 0; i < packs.length; i++) {
+        let buf = packs[i]
+        let head = buf.getInt16(4)
+
+        let body = buf.buffer.slice(head)
+        let protocol = buf.getInt16(6)
+        let operation = buf.getInt32(8)
+
+        let type
+        if (operation === 3) {
+          type = 'heartbeat'
+        }
+        if (operation === 5) {
+          type = 'message'
+        }
+        if (operation === 8) {
+          type = 'welcome'
+        }
+
+        let data
+        if (protocol === 0) {
+          data = JSON.parse(new TextDecoder().decode(body))
+        }
+        if (protocol === 1 && body.byteLength) {
+          data = new DataView(body).getInt32(0)
+        }
+
+        realPack.push({ type, data })
+      }
+
+      return realPack
+    }
+
+    const roomid = Number(new URL(location.href).searchParams.get('roomid'))
+    const css = atob(new URL(location.href).searchParams.get('css') || '')
+    console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
+    console.log(`roomid: ${roomid}`)
+
+    if (css) {
+      console.log(`css: ${css.length}`)
+      document.getElementById('css').innerHTML = css
+    }
+
+    const aWebSocket = new WebSocket('wss://broadcastlv.chat.bilibili.com/sub')
+    aWebSocket.binaryType = 'arraybuffer'
+
+    aWebSocket.onclose = () => {
+      console.log('WebSocket close')
+      console.log('restart')
+      eval(document.getElementById('script').innerHTML)
+    }
+
+    aWebSocket.onopen = () => {
+      console.log('WebSocket open')
+      let buf = encoder({
+        type: 'join',
+        body: { uid: 0, roomid, protover: 1, platform: 'web', clientver: '1.6.3', type: 2 }
+      })
+      aWebSocket.send(buf)
+    }
+
+    aWebSocket.onmessage = ({ data }) => {
+      let packs = decoder(new DataView(data))
+      for (let i = 0; i < packs.length; i++) {
+        if (packs[i].type === 'welcome') {
+          aWebSocket.send(encoder({ type: 'heartbeat' }))
+        }
+        if (packs[i].type === 'heartbeat') {
+          console.log('heartbeat')
+          setTimeout(() => aWebSocket.send(encoder({ type: 'heartbeat' })), 1000 * 30)
+        }
+        if (packs[i].type === 'message') {
+          if (packs[i].data.cmd.includes('DANMU_MSG')) {
+            console.log(packs[i])
+          } else {
+            console.log(packs[i].data)
+          }
+        }
+      }
+    }
+
+  </script>
 </head>
 
-<body></body>
-
-<script type="text/javascript" id="script">
-  const encoder = ({ type, body = '' }) => {
-    if (typeof body !== 'string') {
-      body = JSON.stringify(body)
-    }
-    let head = new DataView(new ArrayBuffer(16))
-    let buffer = new TextEncoder().encode(body)
-
-    head.setInt32(0, buffer.length + head.byteLength)
-    head.setInt16(4, 16)
-    head.setInt16(6, 1)
-    if (type === 'heartbeat') {
-      head.setInt32(8, 2)
-    }
-    if (type === 'join') {
-      head.setInt32(8, 7)
-    }
-    head.setInt32(12, 1)
-    return new Uint8Array([...new Uint8Array(head.buffer), ...buffer])
-  }
-
-
-
-  const decoder = view => {
-    let packs = []
-    for (let i = 0; i < view.byteLength;) {
-      let size = view.getInt32(i)
-      packs.push(new DataView(view.buffer.slice(i, i + size)))
-      i += size
-    }
-    let realPack = []
-    for (let i = 0; i < packs.length; i++) {
-      let buf = packs[i]
-      let head = buf.getInt16(4)
-
-      let body = buf.buffer.slice(head)
-      let protocol = buf.getInt16(6)
-      let operation = buf.getInt32(8)
-
-      let type
-      if (operation === 3) {
-        type = 'heartbeat'
-      }
-      if (operation === 5) {
-        type = 'message'
-      }
-      if (operation === 8) {
-        type = 'welcome'
-      }
-
-      let data
-      if (protocol === 0) {
-        data = JSON.parse(new TextDecoder().decode(body))
-      }
-      if (protocol === 1 && body.byteLength) {
-        data = new DataView(body).getInt32(0)
-      }
-
-      realPack.push({ type, data })
-    }
-
-    return realPack
-  }
-
-  const roomid = Number(new URL(location.href).searchParams.get('roomid'))
-  const css = atob(new URL(location.href).searchParams.get('css') || '')
-  console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
-  console.log(`roomid: ${roomid}`)
-
-  if (css) {
-    console.log(`css: ${css.length}`)
-    document.getElementById('css').innerHTML = css
-  }
-
-  const aWebSocket = new WebSocket('wss://broadcastlv.chat.bilibili.com/sub')
-  aWebSocket.binaryType = 'arraybuffer'
-
-  aWebSocket.onclose = () => {
-    console.log('WebSocket close')
-    console.log('restart')
-    eval(document.getElementById('script').innerHTML)
-  }
-
-  aWebSocket.onopen = () => {
-    console.log('WebSocket open')
-    let buf = encoder({
-      type: 'join',
-      body: { uid: 0, roomid, protover: 1, platform: 'web', clientver: '1.6.3', type: 2 }
-    })
-    aWebSocket.send(buf)
-  }
-
-  aWebSocket.onmessage = e => {
-    console.debug('WebSocket message received:', e)
-  }
-
-</script>
+<body>
 
 </html>
