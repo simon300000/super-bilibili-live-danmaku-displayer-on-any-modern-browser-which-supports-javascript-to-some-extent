@@ -10,6 +10,9 @@
 
 <script type="text/javascript">
 	console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
+	const roomid = Number(new URL(location.href).searchParams.get('roomid'))
+	console.log(`roomid: ${roomid}`)
+
 </script>
 
 </html>
