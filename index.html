@@ -13,6 +13,23 @@
 	const roomid = Number(new URL(location.href).searchParams.get('roomid'))
 	console.log(`roomid: ${roomid}`)
 
+	const aWebSocket = new WebSocket('wss://broadcastlv.chat.bilibili.com/sub')
+	aWebSocket.binaryType = 'arraybuffer'
+
+	aWebSocket.onclose = () => {
+		console.log('WebSocket close')
+		console.log('restart')
+		eval(document.getElementsByTagName('script')[0].innerHTML)
+	}
+
+	aWebSocket.onopen = () => {
+		console.log('WebSocket open')
+	}
+
+	aWebSocket.onmessage = e => {
+		console.debug('WebSocket message received:', e)
+	}
+
 </script>
 
 </html>
