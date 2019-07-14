@@ -2955,7 +2955,12 @@
           }
         })
         .filter(Boolean)
-        .forEach((e, index) => setTimeout(() => document.getElementsByClassName('chathere')[0].appendChild(e), index * Math.random() * 1000))
+        .forEach((e, index) => setTimeout(() => {
+          document.getElementsByClassName('chathere')[0].appendChild(e)
+          if (document.getElementsByClassName('chathere')[0].children.length > 256) {
+            document.getElementsByClassName('chathere')[0].removeChild(document.getElementsByClassName('chathere')[0].children[0])
+          }
+        }, index * Math.random() * 1000))
     }
 
   </script>
