@@ -2942,20 +2942,20 @@
 
     aWebSocket.onmessage = ({ data }) => {
       let packs = decoder(new DataView(data))
-      for (let i = 0; i < packs.length; i++) {
-        if (packs[i].type === 'welcome') {
-          aWebSocket.send(encoder({ type: 'heartbeat' }))
-        }
-        if (packs[i].type === 'heartbeat') {
-          console.log('heartbeat')
-          setTimeout(() => aWebSocket.send(encoder({ type: 'heartbeat' })), 1000 * 30)
-        }
-        if (packs[i].type === 'message') {
-          if (packs[i].data.cmd.includes('DANMU_MSG')) {
-            console.log(packs[i])
+      packs.map(pack => {
+          if (pack.type === 'welcome') {
+            aWebSocket.send(encoder({ type: 'heartbeat' }))
           }
-        }
-      }
+          if (pack.type === 'heartbeat') {
+            console.log('heartbeat')
+            setTimeout(() => aWebSocket.send(encoder({ type: 'heartbeat' })), 1000 * 30)
+          }
+          if (pack.type === 'message') {
+            return render(pack.data)
+          }
+        })
+        .filter(Boolean)
+        .forEach((e, index) => setTimeout(() => document.getElementsByClassName('chathere')[0].appendChild(e), index * Math.random() * 1000))
     }
 
   </script>
