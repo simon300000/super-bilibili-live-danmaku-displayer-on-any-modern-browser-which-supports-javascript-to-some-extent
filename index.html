@@ -2859,12 +2859,17 @@
       if (cmd.includes('DANMU_MSG')) {
         let { info } = e
         if (!info[0][9]) {
-          return renderDanmaku({ username: info[2][1], content: info[1] })
+          let s = new Date().getSeconds()
+          if (s < 10) {
+            s = String(`0${s}`)
+          }
+          let time = `${new Date().getMinutes()}:${s}`
+          return renderDanmaku({ username: info[2][1], content: info[1], time })
         }
       }
     }
 
-    const renderDanmaku = ({ username, content }) => createElement('yt-live-chat-text-message-renderer')
+    const renderDanmaku = ({ username, content, time }) => createElement('yt-live-chat-text-message-renderer')
       .class('style-scope yt-live-chat-item-list-renderer')
       .set('author-type', '')
       .append(
@@ -2891,7 +2896,7 @@
           createElement('span')
           .setId('timestamp')
           .class('style-scope yt-live-chat-text-message-renderer')
-          .append(document.createTextNode(`${new Date().getHours()}:${new Date().getMinutes()}`))
+          .append(document.createTextNode(time))
         )
         .append(
           createElement('yt-live-chat-author-chip')
