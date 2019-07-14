@@ -2620,7 +2620,6 @@
 
     /* Hide badges. */
     yt-live-chat-text-message-renderer #chat-badges {
-      display: none !important;
       vertical-align: text-top !important;
     }
 
@@ -2838,6 +2837,90 @@
       console.log(`css: ${css.length}`)
       document.getElementById('css').innerHTML = css
     }
+
+    const createElement = tag => {
+      let e = document.createElement(tag)
+      const setAttribute = e.setAttribute
+      e.set = (...params) => {
+        e.setAttribute(...params)
+        return e
+      }
+      e.setId = (...params) => e.set('id', ...params)
+      e.class = (...params) => e.set('class', ...params)
+      e.append = (...params) => {
+        e.appendChild(...params)
+        return e
+      }
+      return e
+    }
+
+    const render = e => {
+      let { cmd } = e
+      if (cmd.includes('DANMU_MSG')) {
+        let { info } = e
+        if (!info[0][9]) {
+          return renderDanmaku({ username: info[2][1], content: info[1] })
+        }
+      }
+    }
+
+    const renderDanmaku = ({ username, content }) => createElement('yt-live-chat-text-message-renderer')
+      .class('style-scope yt-live-chat-item-list-renderer')
+      .set('author-type', '')
+      .append(
+        createElement('yt-img-shadow')
+        .set('height', '24')
+        .set('width', '24')
+        .class('no-transition style-scope yt-live-chat-text-message-renderer')
+        .setId('author-photo')
+        .set('style', 'background-color: transparent;')
+        .append(
+          createElement('img')
+          .setId('img')
+          .set('height', '24')
+          .set('width', '24')
+          .set('src', 'https://static.hdslb.com/images/member/noface.gif')
+          .class('style-scope yt-img-shadow')
+        )
+      )
+      .append(
+        createElement('div')
+        .setId('content')
+        .class('style-scope yt-live-chat-text-message-renderer')
+        .append(
+          createElement('span')
+          .setId('timestamp')
+          .class('style-scope yt-live-chat-text-message-renderer')
+          .append(document.createTextNode(`${new Date().getHours()}:${new Date().getMinutes()}`))
+        )
+        .append(
+          createElement('yt-live-chat-author-chip')
+          .class('style-scope yt-live-chat-text-message-renderer')
+          .append(
+            createElement('span')
+            .setId('author-name')
+            .set('dir', 'auto')
+            .set('type', '')
+            .append(document.createTextNode(username))
+            .append(
+              createElement('span')
+              .setId('chip-badges')
+              .class('style-scope yt-live-chat-author-chip')
+            )
+          )
+          .append(
+            createElement('span')
+            .setId('chat-badges')
+            .class('style-scope yt-live-chat-author-chip')
+          )
+        )
+        .append(
+          createElement('span')
+          .setId('message')
+          .class('style-scope yt-live-chat-text-message-renderer')
+          .append(document.createTextNode(content))
+        )
+      )
 
     const aWebSocket = new WebSocket('wss://broadcastlv.chat.bilibili.com/sub')
     aWebSocket.binaryType = 'arraybuffer'
