@@ -2525,6 +2525,13 @@
 
   </style>
 
+  <style>
+    .helper {
+      display: none;
+    }
+
+  </style>
+
   <style media="screen" id="css">
     @import url("https://fonts.googleapis.com/css?family=Changa%20One");
     @import url("https://fonts.googleapis.com/css?family=Imprima");
@@ -3447,6 +3454,37 @@
       return e
     }
 
+    const createTextNode = (...params) => document.createTextNode(...params)
+
+    if (!roomid) {
+      console.log('No roomid')
+      document.head.appendChild(
+        createElement('style')
+        .append(
+          createTextNode(`
+            .helper {
+              display: block;
+            }
+
+            * {
+                font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+              }
+            `)
+        )
+      )
+    }
+
+    const updateURL = () => {
+      let roomid = Number(document.getElementsByName('roomid')[0].value)
+      let css = document.getElementsByName('css')[0].value
+      let url = `https://chat.vtbs.moe/?roomid=${roomid}`
+      if (css.length) {
+        url += `&css=${btoa(css)}`
+      }
+      document.getElementById('urlResult').href = url
+      document.getElementById('urlResult').innerText = url
+    }
+
     const render = e => {
       let { cmd } = e
       if (cmd.includes('DANMU_MSG')) {
@@ -3489,7 +3527,7 @@
           createElement('span')
           .setId('timestamp')
           .class('style-scope yt-live-chat-text-message-renderer')
-          .append(document.createTextNode(time))
+          .append(createTextNode(time))
         )
         .append(
           createElement('yt-live-chat-author-chip')
@@ -3499,7 +3537,7 @@
             .setId('author-name')
             .set('dir', 'auto')
             .set('type', '')
-            .append(document.createTextNode(username))
+            .append(createTextNode(username))
             .append(
               createElement('span')
               .setId('chip-badges')
@@ -3516,7 +3554,7 @@
           createElement('span')
           .setId('message')
           .class('style-scope yt-live-chat-text-message-renderer')
-          .append(document.createTextNode(content))
+          .append(createTextNode(content))
         )
       )
 
@@ -3571,6 +3609,21 @@
 </head>
 
 <body>
+  <div class="helper">
+    <h1>super bilibili live danmaku displayer on any modern browser which supports javascript to some extent</h1>
+    URL/链接:
+    <a id="urlResult" href="https://chat.vtbs.moe/?roomid=0">https://chat.vtbs.moe/?roomid=0</a>
+    <br>
+    <br>
+    Roomid/房间号:
+    <br>
+    <input oninput="updateURL()" type="number" name="roomid">
+    <br>
+    <br>
+    自定义CSS: <a href="https://style.vtbs.moe">https://style.vtbs.moe</a>
+    <br>
+    <textarea oninput="updateURL()" rows="8" cols="80" name="css"></textarea>
+  </div>
   <yt-live-chat-renderer>
     <yt-live-chat-ticker-renderer class="style-scope yt-live-chat-renderer">
       <div id="container" dir="ltr" class="style-scope yt-live-chat-ticker-renderer">
