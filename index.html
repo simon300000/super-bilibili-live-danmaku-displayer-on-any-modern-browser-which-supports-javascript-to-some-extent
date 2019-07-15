@@ -3542,8 +3542,8 @@
     }
 
     aWebSocket.onmessage = ({ data }) => {
-      let packs = decoder(new DataView(data))
-      packs.map(pack => {
+      decoder(new DataView(data))
+        .map(pack => {
           if (pack.type === 'welcome') {
             aWebSocket.send(encoder({ type: 'heartbeat' }))
           }
@@ -3552,16 +3552,19 @@
             setTimeout(() => aWebSocket.send(encoder({ type: 'heartbeat' })), 1000 * 30)
           }
           if (pack.type === 'message') {
-            return render(pack.data)
+            return pack.data
           }
         })
         .filter(Boolean)
-        .forEach((e, index) => setTimeout(() => {
-          document.getElementsByClassName('chathere')[0].appendChild(e)
+        .forEach(e => setTimeout(() => {
+          let element = render(e)
+          if (element) {
+            document.getElementsByClassName('chathere')[0].appendChild(element)
+          }
           if (document.getElementsByClassName('chathere')[0].children.length > 256) {
             document.getElementsByClassName('chathere')[0].removeChild(document.getElementsByClassName('chathere')[0].children[0])
           }
-        }, index * Math.random() * 1000))
+        }, Math.random() * 1000))
     }
 
   </script>
