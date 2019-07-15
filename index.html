@@ -3429,7 +3429,7 @@
     }
 
     const roomid = presetTable[new URL(location.href).searchParams.get('roomid')] || Number(new URL(location.href).searchParams.get('roomid'))
-    const css = atob(new URL(location.href).searchParams.get('css') || '')
+    const css = new URL(location.href).searchParams.get('css')
     console.log('super bilibili live danmaku displayer on any modern browser which supports javascript to some extent is now started')
     console.log(`roomid: ${roomid}`)
 
@@ -3479,7 +3479,7 @@
       let css = document.getElementsByName('css')[0].value
       let url = `https://chat.vtbs.moe/?roomid=${roomid}`
       if (css.length) {
-        url += `&css=${btoa(css)}`
+        url += `&css=${encodeURIComponent(css)}`
       }
       document.getElementById('urlResult').href = url
       document.getElementById('urlResult').innerText = url
@@ -3612,7 +3612,7 @@
   <div class="helper">
     <h1>super bilibili live danmaku displayer on any modern browser which supports javascript to some extent</h1>
     URL/链接:
-    <a id="urlResult" href="https://chat.vtbs.moe/?roomid=0">https://chat.vtbs.moe/?roomid=0</a>
+    <a id="urlResult" target="_blank" href="https://chat.vtbs.moe/?roomid=0">https://chat.vtbs.moe/?roomid=0</a>
     <br>
     <br>
     Roomid/房间号:
